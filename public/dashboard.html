@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <title>Dashboard Admin - Kelola Tampilan Sekolah</title>
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .dashboard-header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-nav {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .nav-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .nav-button:hover {
+            background: #2980b9;
+        }
+
+        .nav-button.active {
+            background: #e74c3c;
+        }
+
+        .section-editor {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .editor-header h3 {
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .save-button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .save-button:hover {
+            background: #229954;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .preview-area {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px dashed #dee2e6;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Dashboard Admin - Kelola Tampilan Sekolah</h1>
+            <p>Kelola konten yang ditampilkan di halaman depan website sekolah</p>
+        </div>
+
+        <div class="dashboard-nav">
+            <button class="nav-button active" onclick="showSection('school-info')">Informasi Sekolah</button>
+            <button class="nav-button" onclick="showSection('vision-mission')">Visi & Misi</button>
+            <button class="nav-button" onclick="showSection('facilities')">Fasilitas</button>
+            <button class="nav-button" onclick="showSection('full-page')">Halaman Lengkap</button>
+        </div>
+
+        <div id="school-info-editor" class="section-editor">
+            <div class="editor-header">
+                <h3>Edit Informasi Sekolah</h3>
+            </div>
+            <textarea id="school-info-content" placeholder="Konten informasi sekolah..."></textarea>
+            <button class="save-button" onclick="saveSection('school-info')">Simpan Perubahan</button>
+            <div id="school-info-status" class="status-message"></div>
+        </div>
+
+        <div id="vision-mission-editor" class="section-editor" style="display: none;">
+            <div class="editor-header">
+                <h3>Edit Visi & Misi</h3>
+            </div>
+            <textarea id="vision-mission-content" placeholder="Konten visi dan misi..."></textarea>
+            <button class="save-button" onclick="saveSection('vision-mission')">Simpan Perubahan</button>
+            <div id="vision-mission-status" class="status-message"></div>
+        </div>
+
+        <div id="facilities-editor" class="section-editor" style="display: none;">
+            <div class="editor-header">
+                <h3>Edit Fasilitas</h3>
+            </div>
+            <textarea id="facilities-content" placeholder="Konten fasilitas..."></textarea>
+            <button class="save-button" onclick="saveSection('facilities')">Simpan Perubahan</button>
+            <div id="facilities-status" class="status-message"></div>
+        </div>
+
+        <div id="full-page-editor" class="section-editor" style="display: none;">
+            <div class="editor-header">
+                <h3>Edit Halaman Lengkap</h3>
+                <button class="save-button" onclick="saveFullPage()">Simpan Halaman Lengkap</button>
+            </div>
+            <textarea id="full-page-content" placeholder="Konten halaman lengkap..."></textarea>
+            <div id="full-page-status" class="status-message"></div>
+            
+            <div class="preview-area">
+                <h4>Preview:</h4>
+                <iframe id="preview-frame" style="width: 100%; height: 400px; border: 1px solid #ccc; border-radius: 5px;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSections = {};
+
+        // Load sections on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSections();
+        });
+
+        function showSection(sectionName) {
+            // Hide all editors
+            document.querySelectorAll('.section-editor').forEach(editor => {
+                editor.style.display = 'none';
+            });
+
+            // Show selected editor
+            document.getElementById(`${sectionName}-editor`).style.display = 'block';
+
+            // Update active button
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.querySelector(`.nav-button[onclick="showSection('${sectionName}')"]`).classList.add('active');
+        }
+
+        function loadSections() {
+            fetch('/dashboard/sections')
+                .then(response => response.json())
+                .then(sections => {
+                    currentSections = sections;
+                    
+                    // Populate textareas
+                    if (sections.schoolInfo) {
+                        document.getElementById('school-info-content').value = sections.schoolInfo;
+                    }
+                    if (sections.visionMission) {
+                        document.getElementById('vision-mission-content').value = sections.visionMission;
+                    }
+                    if (sections.facilities) {
+                        document.getElementById('facilities-content').value = sections.facilities;
+                    }
+
+                    // Load full page content
+                    fetch('/dashboard/content')
+                        .then(response => response.text())
+                        .then(content => {
+                            document.getElementById('full-page-content').value = content;
+                        });
+                })
+                .catch(error => {
+                    console.error('Error loading sections:', error);
+                    showStatus('school-info-status', 'Error loading content!', 'error');
+                });
+        }
+
+        function saveSection(sectionName) {
+            const content = document.getElementById(`${sectionName}-content`).value;
+            const statusElement = document.getElementById(`${sectionName}-status`);
+
+            fetch('/dashboard/update-section', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sectionName: sectionName,
+                    sectionContent: content
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showStatus(statusElement, data.message, 'success');
+                loadSections(); // Reload to get updated content
+            })
+            .catch(error => {
+                showStatus(statusElement, 'Error saving section!', 'error');
+            });
+        }
+
+        function saveFullPage() {
+            const content = document.getElementById('full-page-content').value;
+            const statusElement = document.getElementById('full-page-status');
+
+            fetch('/dashboard/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showStatus(statusElement, data.message, 'success');
+                
+                // Update preview
+                const previewFrame = document.getElementById('preview-frame');
+                const previewDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+                previewDoc.open();
+                previewDoc.write(content);
+                previewDoc.close();
+            })
+            .catch(error => {
+                showStatus(statusElement, 'Error saving page!', 'error');
+            });
+        }
+
+        function showStatus(element, message, type) {
+            element.textContent = message;
+            element.className = `status-message ${type}`;
+            element.style.display = 'block';
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 3000);
+        }
+
+        // Preview functionality for full page editor
+        document.getElementById('full-page-content').addEventListener('input', function() {
+            const previewFrame = document.getElementById('preview-frame');
+            const previewDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+            previewDoc.open();
+            previewDoc.write(this.value);
+            previewDoc.close();
+        });
+    </script>
+</body>
+</html>

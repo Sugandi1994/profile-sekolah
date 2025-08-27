@@ -15,7 +15,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         const data = await response.json();
         if (response.ok) {
             alert(data.message);
-            // Redirect to profile page or dashboard
+            // Redirect to dashboard
+            window.location.href = '/dashboard';
         } else {
             alert(data.message);
         }
